@@ -1,0 +1,27 @@
+= Objectory: Object Mapping Factory
+Hossein Pursultani
+v0.1, May 2019
+
+_Objectory_ is an object mapping factory written in Ruby.
+
+
+== Overview
+
+Schema mapping tools are in abundance. However, _Objectory_ uses a different
+approach to schema mapping or as it refers to it _object mapping_. It relies
+on two fundamental concepts, *pipelines* and *selectors* which it borrows
+respectively from Unix and jQuery.
+
+To put it simply, a *selector* reads or writes a specified piece of data from
+or to the domain. It either feeds data into a pipeline or captures its output.
+A *pipeline* is a chain of *operators* that transforms an input gradually
+into an output, without being concerned about where the input comes from or
+output goes to.
+
+With this approach a mapping is just a set of interconnected selectors and
+pipelines, so they can be _declaratively described_. This is another key
+feature of _Objectory_, which is the ability to define and store the mapping
+logic independently and as separate piece of information.
+
+At runtime, _Objectory_ looks like an engine that loads the mapping logic and
+transforms the given objects and generates new ones as described.

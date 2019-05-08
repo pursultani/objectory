@@ -1,0 +1,6 @@
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: never
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: empty_lines
+Layout/EmptyLinesAroundModuleBody:
+  EnforcedStyle: empty_lines_except_namespace
