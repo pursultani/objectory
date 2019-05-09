@@ -4,6 +4,8 @@ v0.1, May 2019
 
 _Objectory_ is an object mapping factory written in Ruby.
 
+[link=https://gitlab.com/pursultani/objectory/pipelines]
+image::https://gitlab.com/pursultani/objectory/badges/master/build.svg[Build Status]
 
 == Overview
 
