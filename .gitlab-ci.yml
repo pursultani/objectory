@@ -1,0 +1,30 @@
+image: ruby:2.6
+
+cache:
+  paths:
+  - vendor/ruby
+
+stages:
+  - check
+  - test
+  - build
+
+before_script:
+  - ruby -v
+  - bundle install --path vendor/ruby
+
+rubocop:
+  stage: check
+  script:
+  - bundle exec rubocop
+  allow_failure: true
+
+rspec:
+  stage: test
+  script:
+  - bundle exec rake spec
+
+build:gem:
+  stage: build
+  script:
+  - gem build objectory.gemspec
