@@ -5,15 +5,15 @@ describe Objectory::Selector do
 
   #
   # NOTE: Examples are ordered from more specific to more generic.
-  #       The most generic selector is ALL selector, i.e. `.`.
-  #       The least generic selector is NULL selector, i.e. `nil`
+  #       The most generic selector is any selector, i.e. `.`.
+  #       The least generic selector is null selector, i.e. `nil`
   #       or ``.
   #
-  NULL = [nil, ''].freeze
-  ANY = ['.'].freeze
-  EXAMPLES = ['.foo.bar.baz', '.foo.bar', '.foo'].freeze
-  DISJOINT_EXAMPLES = ['.foo.bar', '.foo.baz', '.bar'].freeze
-  INVALID = ['..', '?', '.foo[0]', '.foo.*'].freeze
+  null = [nil, ''].freeze
+  any = ['.'].freeze
+  examples = ['.foo.bar.baz', '.foo.bar', '.foo'].freeze
+  disjoint_examples = ['.foo.bar', '.foo.baz', '.bar'].freeze
+  invalid = ['..', '?', '.foo[0]', '.foo.*'].freeze
 
   def evaluate(samples, method)
     samples.map do |sample|
@@ -43,16 +43,16 @@ describe Objectory::Selector do
     end
 
     it 'should be subset of everything including itself' do
-      expect(evaluate(NULL + EXAMPLES + ANY, :subset?)).to all(be_truthy)
+      expect(evaluate(null + examples + any, :subset?)).to all(be_truthy)
     end
 
     it 'should be superset of nothing but itself' do
-      expect(evaluate(NULL, :superset?)).to all(be_truthy)
-      expect(evaluate(EXAMPLES, :superset?)).to all(be_falsey)
+      expect(evaluate(null, :superset?)).to all(be_truthy)
+      expect(evaluate(examples, :superset?)).to all(be_falsey)
     end
 
     it 'should not have intersect with anything' do
-      expect(evaluate(NULL + EXAMPLES + ANY, :intersect)).to all(be_nil)
+      expect(evaluate(null + examples + any, :intersect)).to all(be_nil)
     end
   end
 
@@ -64,26 +64,26 @@ describe Objectory::Selector do
     end
 
     it 'should not have any subset but itself' do
-      expect(evaluate(ANY, :subset?)).to all(be_truthy)
-      expect(evaluate(NULL + EXAMPLES, :subset?)).to all(be_falsey)
+      expect(evaluate(any, :subset?)).to all(be_truthy)
+      expect(evaluate(null + examples, :subset?)).to all(be_falsey)
     end
 
     it 'should be superset of everything including itself' do
-      expect(evaluate(NULL + EXAMPLES + ANY, :superset?)).to all(be_truthy)
+      expect(evaluate(null + examples + any, :superset?)).to all(be_truthy)
     end
 
     it 'should have intersect with everything except null' do
-      expect(evaluate(EXAMPLES + ANY, :intersect)).to eq EXAMPLES + ANY
-      expect(evaluate(NULL, :intersect)).to all(be_nil)
+      expect(evaluate(examples + any, :intersect)).to eq examples + any
+      expect(evaluate(null, :intersect)).to all(be_nil)
     end
   end
 
-  EXAMPLES.each_with_index do |example, i|
+  examples.each_with_index do |example, i|
     context "with `#{example}` initial value" do
       let(:path) { example }
 
-      more_generic = EXAMPLES[i + 1..-1] + ANY
-      more_specific = i > 0 ? EXAMPLES[0..i - 1] : []
+      more_generic = examples[i + 1..-1] + any
+      more_specific = i > 0 ? examples[0..i - 1] : []
 
       it "should be equal to `#{example}`" do
         expect(subject).to eq example
@@ -113,40 +113,50 @@ describe Objectory::Selector do
         expect(evaluate(more_generic, :intersect)).to eq \
           [subject] * more_generic.length
       end
+
+      it 'should be subset, superset, and intersect of itself' do
+        expect(subject.subset?(subject)).to be_truthy
+        expect(subject.superset?(subject)).to be_truthy
+        expect(subject.intersect(subject)).to eq subject
+      end
     end
   end
 
-  context 'intersect operator' do
+  describe :intersect do
     it 'should be symmetric' do
-      a = Objectory::Selector.new EXAMPLES[0]
-      b = Objectory::Selector.new EXAMPLES[1]
+      a = Objectory::Selector.new examples[0]
+      b = Objectory::Selector.new examples[1]
       expect(a.intersect(b) == b.intersect(a)).to be_truthy
     end
 
-    it 'should return nil for disjoint selectors' do
-      disjoints = DISJOINT_EXAMPLES.map { |s| Objectory::Selector.new s }
+    it 'should return null for disjoint selectors' do
+      disjoints = disjoint_examples.map { |s| Objectory::Selector.new s }
       disjoints.each do |i|
         disjoints.each do |j|
-          expect(i.intersect(j)).to be_nil
-          expect(j.intersect(i)).to be_nil
+          if i == j
+            expect(i.intersect(j)).to eq i
+          else
+            expect(i.intersect(j)).to be_nil
+            expect(j.intersect(i)).to be_nil
+          end
         end
       end
     end
   end
 
-  context 'subset and superset operators' do
+  describe [:subset?, :superset?] do
     it 'should return false for disjoint selectors' do
-      disjoints = DISJOINT_EXAMPLES.map { |s| Objectory::Selector.new s }
+      disjoints = disjoint_examples.map { |s| Objectory::Selector.new s }
       disjoints.each do |i|
         disjoints.each do |j|
-          expect(i.subset?(j)).to be_falsey
-          expect(j.subset?(i)).to be_falsey
+          expect(i.subset?(j)).to eq i == j
+          expect(j.subset?(i)).to eq i == j
         end
       end
     end
   end
 
-  INVALID.each do |example|
+  invalid.each do |example|
     context "with `#{example}` value" do
       it 'should throw an exception' do
         expect { Objectory::Selector.new example }.to \

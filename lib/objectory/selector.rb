@@ -36,7 +36,7 @@ module Objectory
     private
 
     def with_prefix?(other, subject = self)
-      subject.start_with?(other == '.' ? other : other + '.')
+      other == subject || subject.start_with?(other == '.' ? other : other + '.')
     end
 
     def validate(path)
