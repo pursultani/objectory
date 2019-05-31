@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/pursultani/objectory'
 
   s.platform = Gem::Platform::RUBY
+  s.require_paths = ['lib']
 
   s.add_development_dependency 'rspec', '~> 3.8'
 end
