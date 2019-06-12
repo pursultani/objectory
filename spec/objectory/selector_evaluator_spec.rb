@@ -51,7 +51,7 @@ describe Objectory::SelectorEvaluator do
         expect { subject.evaluate(domain, '.bar.baz') {} }.to \
           raise_error(/Missing object/)
         expect { subject.evaluate(domain, '.foo.bar') {} }.to \
-          raise_error(/Only Hash types are supported/)
+          raise_error(/Only Hash type is supported/)
       end
     end
   end
@@ -105,7 +105,7 @@ describe Objectory::SelectorEvaluator do
         expect { subject.evaluate!(domain, '.bar.baz') {} }.to \
           raise_error(/Missing object/)
         expect { subject.evaluate!(domain, '.foo.bar') {} }.to \
-          raise_error(/Only Hash types are supported/)
+          raise_error(/Only Hash type is supported/)
       end
     end
   end
