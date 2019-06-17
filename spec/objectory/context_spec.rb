@@ -78,4 +78,22 @@ describe Objectory::Context do
       expect(subject.error.errors).to eq [oops, uh_oh]
     end
   end
+
+  describe :options do
+    context 'with no initial options' do
+      subject { Objectory::Context.new(nil, nil) }
+
+      it 'should be empty' do
+        expect(subject.options).to be_empty
+      end
+    end
+
+    context 'with initial options' do
+      subject { Objectory::Context.new(nil, nil, strict: true, foo: :bar) }
+
+      it 'should contain the initial options' do
+        expect(subject.options).to eq({ strict: true, foo: :bar })
+      end
+    end
+  end
 end

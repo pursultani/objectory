@@ -69,7 +69,7 @@ module Objectory
     end
 
     def check_missing(cursor, selector, element)
-      return unless cursor.nil? && options.include?(:strict)
+      return unless cursor.nil? && options[:strict]
 
       # Can not proceed any further if not lenient.
       raise ArgumentError,

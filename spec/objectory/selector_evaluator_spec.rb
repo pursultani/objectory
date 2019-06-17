@@ -14,7 +14,7 @@ end
 
 describe Objectory::SelectorEvaluator do
   subject { MockEvaluator.new options }
-  let(:options) { [] }
+  let(:options) { {} }
 
   describe :evaluate do
     context :lenient do
@@ -43,7 +43,7 @@ describe Objectory::SelectorEvaluator do
     end
 
     context :strict do
-      let(:options) { [:strict] }
+      let(:options) { { strict: true } }
 
       it 'should raise an error for non-existing objects' do
         domain = { 'foo' => 'FOO' }
@@ -96,7 +96,7 @@ describe Objectory::SelectorEvaluator do
     end
 
     context :strict do
-      let(:options) { [:strict] }
+      let(:options) { { strict: true } }
 
       it 'should raise an error for non-existing objects' do
         domain = {}
