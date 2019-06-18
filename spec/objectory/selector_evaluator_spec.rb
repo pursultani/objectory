@@ -14,7 +14,7 @@ end
 
 describe Objectory::SelectorEvaluator do
   subject { MockEvaluator.new options }
-  let(:options) { [] }
+  let(:options) { {} }
 
   describe :evaluate do
     context :lenient do
@@ -43,7 +43,7 @@ describe Objectory::SelectorEvaluator do
     end
 
     context :strict do
-      let(:options) { [:strict] }
+      let(:options) { { strict: true } }
 
       it 'should raise an error for non-existing objects' do
         domain = { 'foo' => 'FOO' }
@@ -51,7 +51,7 @@ describe Objectory::SelectorEvaluator do
         expect { subject.evaluate(domain, '.bar.baz') {} }.to \
           raise_error(/Missing object/)
         expect { subject.evaluate(domain, '.foo.bar') {} }.to \
-          raise_error(/Only Hash types are supported/)
+          raise_error(/Only Hash type is supported/)
       end
     end
   end
@@ -96,7 +96,7 @@ describe Objectory::SelectorEvaluator do
     end
 
     context :strict do
-      let(:options) { [:strict] }
+      let(:options) { { strict: true } }
 
       it 'should raise an error for non-existing objects' do
         domain = {}
@@ -105,7 +105,7 @@ describe Objectory::SelectorEvaluator do
         expect { subject.evaluate!(domain, '.bar.baz') {} }.to \
           raise_error(/Missing object/)
         expect { subject.evaluate!(domain, '.foo.bar') {} }.to \
-          raise_error(/Only Hash types are supported/)
+          raise_error(/Only Hash type is supported/)
       end
     end
   end

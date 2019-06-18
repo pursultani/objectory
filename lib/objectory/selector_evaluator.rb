@@ -56,7 +56,7 @@ module Objectory
     def value_of(cursor, element, value = nil)
       return nil if cursor.nil?
 
-      raise ArgumentError, 'Only Hash types are supported' \
+      raise ArgumentError, 'Only Hash type is supported' \
         unless cursor.is_a? Hash
 
       if value.nil?
@@ -69,7 +69,7 @@ module Objectory
     end
 
     def check_missing(cursor, selector, element)
-      return unless cursor.nil? && options.include?(:strict)
+      return unless cursor.nil? && options[:strict]
 
       # Can not proceed any further if not lenient.
       raise ArgumentError,
