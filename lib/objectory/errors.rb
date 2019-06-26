@@ -7,6 +7,12 @@ module Objectory
     class RuntimeError < StandardError
     end
 
+    class ReadError < RuntimeError
+    end
+
+    class WriteError < RuntimeError
+    end
+
     class RuntimeErrorContainer < RuntimeError
 
       attr_reader :errors

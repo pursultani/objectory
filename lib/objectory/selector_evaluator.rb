@@ -56,7 +56,9 @@ module Objectory
     def value_of(cursor, element, value = nil)
       return nil if cursor.nil?
 
-      raise ArgumentError, 'Only Hash type is supported' \
+      raise ArgumentError, 'Only Hash type is supported. ' \
+        'You may see this because you are using a nested ' \
+        'selector on a scalar type.' \
         unless cursor.is_a? Hash
 
       if value.nil?
