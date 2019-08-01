@@ -3,26 +3,23 @@ require_relative 'errors'
 module Objectory
   module Operators
 
-    def self.operator(name, &block)
-      desc = Descriptor.new name
-      desc.instance_eval(&block)
-      register(desc) if desc.check
-    end
-
     class Descriptor
 
-      attr_reader :parameters, :handlers
+      attr_reader :signature, :handlers
 
       def initialize(name, namespace = :default)
         @name = name
         @namespace = namespace
         @aliases = []
-        @parameters = {}
+        @signature = {}
         @handlers = {}
       end
 
-      def check
-        true
+      def ensure
+        ensure_name
+        ensure_signature
+        ensure_handlers
+        self
       end
 
       def name(*values)
@@ -59,10 +56,10 @@ module Objectory
 
       def parameter(name, *values)
         if values.empty?
-          @parameters[name]
+          @signature[name]
         else
           options = values.last.is_a?(Hash) ? values.pop : {}
-          @parameters[name] = {
+          @signature[name] = {
             types: values.empty? ? [Object] : values,
             options: options
           }
@@ -78,14 +75,46 @@ module Objectory
       end
 
       def error(*options, &block)
+        options = [StandardError] if options.length.zero?
         on(:error, *options, &block)
       end
 
       def on(name, *options, &block)
         @handlers[name] = {
-          options: options,
+          options: options || [],
           block: block
         }
+      end
+
+      private
+
+      def ensure_name
+        raise Objectory::Errors::CompilerError,
+              'Operator name is required' \
+              if @name.nil?
+
+        raise Objectory::Errors::CompilerError,
+              'Operator namespace is required' \
+              if @namespace.nil?
+      end
+
+      def ensure_signature
+        @signature.each_pair do |name, sig|
+          raise Objectory::Errors::CompilerError,
+                "Parameter `#{@namespace}:#{@name}#{name}` " \
+                'uses a non-Class type' \
+                if sig[:types].any? { |type| !type.instance_of? Class }
+
+          raise Objectory::Errors::CompilerError,
+                "Parameter `#{@namespace}:#{@name}#{name}` options are nil" \
+                if sig[:options].nil?
+        end
+      end
+
+      def ensure_handlers
+        raise Objectory::Errors::CompilerError,
+              'At least one handler is required' \
+              if @handlers.empty?
       end
 
     end
@@ -152,6 +181,72 @@ module Objectory
         result
       end
 
+    end
+
+    class Runtime
+
+      attr_reader :context, :arguments, :input
+
+      def initialize(ref, context, arguments, input)
+        @descriptor = descriptor(ref)
+        @context = context
+        @arguments = arguments
+        @input = input
+      end
+
+      def name
+        @descriptor.name
+      end
+
+      def namespace
+        @descriptor.namespace
+      end
+
+      def signature
+        @descriptor.signature
+      end
+
+      def run
+        handle(:validate)
+        handle(:execute)
+      rescue StandardError => e
+        err_handler = @descriptor.handlers[:error]
+        err_handled = false
+
+        unless err_handler.nil?
+          err_handler[:options]&.each do |err_type|
+            next unless e.is_a? err_type
+            break if err_handled
+
+            err_handled = !handle(:error, [e]).nil?
+          end
+        end
+
+        raise e unless err_handled
+      end
+
+      private
+
+      def handle(event, options = nil)
+        handler = @descriptor.handlers[event]
+        return nil if handler.nil? || handler[:block].nil?
+
+        instance_exec(*(options || handler[:options] || []), &handler[:block])
+      end
+
+      def descriptor(ref)
+        q = ref.to_s.split ':'
+        name = (q.length > 1 ? q.last : q.first).to_sym
+        namespace = q.length > 1 ? q[0..-2].join(':').to_sym : :default
+        Operators.lookup(name, namespace)
+      end
+
+    end
+
+    def self.operator(name, &block)
+      desc = Descriptor.new name
+      desc.instance_exec(&block)
+      register(desc.ensure)
     end
 
     def self.register(desc)
