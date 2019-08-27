@@ -15,10 +15,10 @@ module Objectory
         @handlers = {}
       end
 
-      def ensure
-        ensure_name
-        ensure_signature
-        ensure_handlers
+      def check
+        check_name
+        check_signature
+        check_handlers
         self
       end
 
@@ -88,7 +88,7 @@ module Objectory
 
       private
 
-      def ensure_name
+      def check_name
         raise Objectory::Errors::CompilerError,
               'Operator name is required' \
               if @name.nil?
@@ -98,7 +98,7 @@ module Objectory
               if @namespace.nil?
       end
 
-      def ensure_signature
+      def check_signature
         @signature.each_pair do |name, sig|
           raise Objectory::Errors::CompilerError,
                 "Parameter `#{@namespace}:#{@name}#{name}` " \
@@ -111,7 +111,7 @@ module Objectory
         end
       end
 
-      def ensure_handlers
+      def check_handlers
         raise Objectory::Errors::CompilerError,
               'At least one handler is required' \
               if @handlers.empty?
@@ -185,13 +185,13 @@ module Objectory
 
     class Runtime
 
-      attr_reader :context, :arguments, :input
+      attr_reader :context, :arguments
 
       def initialize(ref, context, arguments, input)
-        @descriptor = descriptor(ref)
+        @descriptor = ref.is_a?(Descriptor) ? ref : Operators.find(ref)
         @context = context
-        @arguments = arguments
-        @input = input
+        @arguments = arguments || {}
+        @arguments[:input] = input
       end
 
       def name
@@ -234,19 +234,12 @@ module Objectory
         instance_exec(*(options || handler[:options] || []), &handler[:block])
       end
 
-      def descriptor(ref)
-        q = ref.to_s.split ':'
-        name = (q.length > 1 ? q.last : q.first).to_sym
-        namespace = q.length > 1 ? q[0..-2].join(':').to_sym : :default
-        Operators.lookup(name, namespace)
-      end
-
     end
 
     def self.operator(name, &block)
       desc = Descriptor.new name
       desc.instance_exec(&block)
-      register(desc.ensure)
+      register(desc.check)
     end
 
     def self.register(desc)
@@ -259,6 +252,13 @@ module Objectory
 
     def self.lookup(name, namespace = :default)
       Pool.instance(namespace).get(name)
+    end
+
+    def self.find(ref)
+      q = ref.to_s.split ':'
+      name = (q.length > 1 ? q.last : q.first).to_sym
+      namespace = q.length > 1 ? q[0..-2].join(':').to_sym : :default
+      lookup(name, namespace)
     end
 
   end
