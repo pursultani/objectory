@@ -185,13 +185,13 @@ module Objectory
 
     class Runtime
 
-      attr_reader :context, :arguments, :input
+      attr_reader :context, :arguments
 
       def initialize(ref, context, arguments, input)
-        @descriptor = ref.is_a? Descriptor ? ref : Operators.find(ref)
+        @descriptor = ref.is_a?(Descriptor) ? ref : Operators.find(ref)
         @context = context
-        @arguments = arguments
-        @input = input
+        @arguments = arguments || {}
+        @arguments[:input] = input
       end
 
       def name

@@ -10,23 +10,24 @@ module Objectory
       @calls = []
     end
 
-    def add_operator(operator, arguments = {}, index = -1)
+    def add(operator, arguments = {}, index = -1)
       @calls.insert(index, Call.new(operator, arguments))
     end
 
-    def remove_operator(index = -1)
+    def remove(index = -1)
       @calls.delete_at(index)
     end
 
-    def execute(input, context)
+    def execute(context, input = nil)
       current = input
       @calls.each do |call|
         runtime = Objectory::Operators::Runtime.new(
-          call.operator, context, call.arguments, input
+          call.operator, context, call.arguments, current
         )
-        current = runtime.run
+        output = runtime.run
+        current = output
       rescue StandardError => e
-        context.report(e)
+        context.catch(e)
       end
       current
     end
